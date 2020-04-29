@@ -11,8 +11,8 @@ require qt5-git.inc
 
 DEPENDS += "qtbase qtdeclarative qtremoteobjects-native"
 
-# Patches from https://github.com/meta-qt5/qtremoteobjects/commits/b5.12
-# 5.12.meta-qt5.2
+# Patches from https://github.com/meta-qt5/qtremoteobjects/commits/b5.11
+# 5.11.meta-qt5.6
 SRC_URI += " \
     file://0001-Allow-a-tools-only-build.patch \
 "
@@ -24,6 +24,6 @@ PACKAGECONFIG[tools-only] = "CONFIG+=tools-only"
 
 EXTRA_QMAKEVARS_PRE += "${PACKAGECONFIG_CONFARGS}"
 
-SRCREV = "76d6a13889514b03a1878e19b56eb1e6f17d1b90"
+SRCREV = "92ae729691f6db9fb06b0475509dc1141ac3d93c"
 
 BBCLASSEXTEND += "native nativesdk"

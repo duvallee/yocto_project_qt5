@@ -10,13 +10,15 @@ LIC_FILES_CHKSUM = " \
     file://LICENSE.FDL;md5=6d9f2a9af4c8b8c3c769f6cc1b6aaf7e \
 "
 
-SRC_URI += "file://0001-Add-missing-header-for-errno.patch"
-
 DEPENDS += "qtbase qtdeclarative"
 
+inherit bluetooth
+
 PACKAGECONFIG ??= "${@bb.utils.contains('DISTRO_FEATURES', 'bluetooth', 'bluez', '', d)}"
-PACKAGECONFIG[bluez] = "-feature-bluez,-no-feature-bluez,bluez5"
+PACKAGECONFIG[bluez] = "-feature-bluez,-no-feature-bluez,${BLUEZ}"
 
 EXTRA_QMAKEVARS_CONFIGURE += "${PACKAGECONFIG_CONFARGS}"
 
-SRCREV = "33f5988eadf1b748d75deec8bc12afc1d47ea52f"
+SRCREV = "d1cf8dad0e6d8d08b5c6f2f08d85a0e75b0bcf8a"
+
+SRC_URI += "file://0001-Ignore-clang-warning-about-address-of-temp-in-config.patch"

@@ -10,7 +10,7 @@ DEPENDS += "qtbase qttools-native"
 
 do_install_append() {
     # remove qtquick1 translations - qtquick1 is gone
-    for transfile in `find ${D}/${OE_QMAKE_PATH_TRANSLATIONS} -name qt_*.qm ! -name qt_help_*.qm`; do
+    for transfile in `find ${D}/${OE_QMAKE_PATH_TRANSLATIONS} -name qtquick1_*.qm -o -name qt_*.qm ! -name qt_help_*.qm`; do
         rm $transfile
     done
 }
@@ -19,6 +19,7 @@ PACKAGES =. " \
     ${PN}-assistant \
     ${PN}-designer \
     ${PN}-linguist \
+    ${PN}-qmlviewer \
     ${PN}-qtconnectivity \
     ${PN}-qtmultimedia \
     ${PN}-qtlocation \
@@ -44,6 +45,10 @@ FILES_${PN}-designer = " \
 
 FILES_${PN}-linguist = " \
     ${OE_QMAKE_PATH_TRANSLATIONS}/linguist_*.qm \
+"
+
+FILES_${PN}-qmlviewer = " \
+    ${OE_QMAKE_PATH_TRANSLATIONS}/qmlviewer_*.qm \
 "
 
 FILES_${PN}-qtconnectivity = " \
@@ -98,4 +103,4 @@ FILES_${PN}-qthelp = " \
     ${OE_QMAKE_PATH_TRANSLATIONS}/qt_help_*.qm \
 "
 
-SRCREV = "d80d31a2d4bd94a4a97dd532a126f04d1a4dfc2d"
+SRCREV = "ed5110171ca294207f341f46610c716170c06282"

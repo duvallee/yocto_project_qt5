@@ -17,8 +17,8 @@ require qt5-native.inc
 require qt5-git.inc
 
 # common for qtbase-native, qtbase-nativesdk and qtbase
-# Patches from https://github.com/meta-qt5/qtbase/commits/b5.12-shared
-# 5.12.meta-qt5-shared.9
+# Patches from https://github.com/meta-qt5/qtbase/commits/b5.11-shared
+# 5.11.meta-qt5-shared.14
 SRC_URI += "\
     file://0001-Add-linux-oe-g-platform.patch \
     file://0002-cmake-Use-OE_QMAKE_PATH_EXTERNAL_HOST_BINS.patch \
@@ -32,24 +32,26 @@ SRC_URI += "\
     file://0010-linux-clang-Invert-conditional-for-defining-QT_SOCKL.patch \
     file://0011-tst_qlocale-Enable-QT_USE_FENV-only-on-glibc.patch \
     file://0012-mkspecs-common-gcc-base.conf-Use-I-instead-of-isyste.patch \
-    file://0013-Disable-ltcg-for-host_build.patch \
-    file://0014-Qt5GuiConfigExtras.cmake.in-cope-with-variable-path-.patch \
-    file://0015-corelib-Include-sys-types.h-for-uint32_t.patch \
-    file://0016-Define-QMAKE_CXX.COMPILER_MACROS-for-clang-on-linux.patch \
-    file://0017-Fix-Wdeprecated-copy-warnings.patch \
+    file://0013-Upgrade-double-conversion-to-v3.0.0.patch \
+    file://0014-double-conversion-support-AARCH64EB-and-arm-BE.patch \
+    file://0015-Disable-ltcg-for-host_build.patch \
+    file://0016-Qt5GuiConfigExtras.cmake.in-cope-with-variable-path-.patch \
+    file://0017-corelib-Include-sys-types.h-for-uint32_t.patch \
+    file://0018-Define-QMAKE_CXX.COMPILER_MACROS-for-clang-on-linux.patch \
+    file://0019-Fix-compile-issue-with-gcc-9.patch \
 "
 
 # common for qtbase-native and nativesdk-qtbase
-# Patches from https://github.com/meta-qt5/qtbase/commits/b5.12-native
-# 5.12.meta-qt5-native.9
+# Patches from https://github.com/meta-qt5/qtbase/commits/b5.11-native
+# 5.11.meta-qt5-native.14
 SRC_URI += " \
-    file://0018-Always-build-uic-and-qvkgen.patch \
-    file://0019-Avoid-renameeat2-for-native-sdk-builds.patch \
+    file://0020-Always-build-uic-and-qvkgen.patch \
+    file://0021-Avoid-renameeat2-for-native-sdk-builds.patch \
 "
 
 # only for qtbase-native
 SRC_URI += " \
-    file://0020-Bootstrap-without-linkat-feature.patch \
+    file://0022-Bootstrap-without-linkat-feature.patch \
 "
 
 CLEANBROKEN = "1"
@@ -57,9 +59,8 @@ CLEANBROKEN = "1"
 XPLATFORM_toolchain-clang = "linux-oe-clang"
 XPLATFORM ?= "linux-oe-g++"
 
-QT_CONFIG_FLAGS = " \
+PACKAGECONFIG_CONFARGS = " \
     -sysroot ${STAGING_DIR_NATIVE} \
-    -L${STAGING_LIBDIR_NATIVE} \
     -no-gcc-sysroot \
     -system-zlib \
     -qt-pcre \
@@ -98,7 +99,6 @@ QT_CONFIG_FLAGS = " \
     -no-rpath \
     -no-feature-linkat \
     -platform ${XPLATFORM} \
-    ${PACKAGECONFIG_CONFARGS} \
 "
 
 # for qtbase configuration we need default settings
@@ -114,7 +114,7 @@ do_configure_prepend() {
     # Avoid qmake error "Cannot read [...]/usr/lib/qt5/mkspecs/oe-device-extra.pri: No such file or directory"
     touch ${S}/mkspecs/oe-device-extra.pri
 
-    MAKEFLAGS="${PARALLEL_MAKE}" ${S}/configure -${QT_EDITION} -confirm-license ${QT_CONFIG_FLAGS} || die "Configuring qt failed. QT_CONFIG_FLAGS was ${QT_CONFIG_FLAGS}"
+    MAKEFLAGS="${PARALLEL_MAKE}" ${S}/configure -${QT_EDITION} -confirm-license ${PACKAGECONFIG_CONFARGS} || die "Configuring qt failed. PACKAGECONFIG_CONFARGS was ${PACKAGECONFIG_CONFARGS}"
 }
 
 do_install() {
@@ -142,4 +142,4 @@ do_install() {
     echo 'set(_qt5_corelib_extra_includes "${_qt5Core_install_prefix}/lib${QT_DIR_NAME}/mkspecs/linux-oe-g++")' > ${D}${libdir}/cmake/Qt5Core/Qt5CoreConfigExtrasMkspecDir.cmake
 }
 
-SRCREV = "f0b93f7a4b4281c5470280eb36b7c0ef5948a921"
+SRCREV = "08de243eaa007597c2bfbc97d3d14e2f821ac4be"

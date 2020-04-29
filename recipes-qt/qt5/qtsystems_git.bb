@@ -12,8 +12,10 @@ LIC_FILES_CHKSUM = " \
 
 DEPENDS += "qtbase qtdeclarative udev gconf"
 
+inherit bluetooth
+
 PACKAGECONFIG ??= "${@bb.utils.contains('DISTRO_FEATURES', 'bluetooth', 'bluez', '', d)}"
-PACKAGECONFIG[bluez] = "CONFIG+=OE_BLUEZ_ENABLED,,bluez5"
+PACKAGECONFIG[bluez] = "CONFIG+=OE_BLUEZ_ENABLED,,${BLUEZ}"
 
 EXTRA_QMAKEVARS_PRE += "${PACKAGECONFIG_CONFARGS}"
 
@@ -29,4 +31,4 @@ do_install_append() {
 
 QT_MODULE_BRANCH = "dev"
 
-SRCREV = "e3332ee38d27a134cef6621fdaf36687af1b6f4a"
+SRCREV = "66e45676f5f5c6251ccab36906c6324fd0065e08"

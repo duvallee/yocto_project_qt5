@@ -3,15 +3,13 @@ SECTION = "libs"
 LICENSE = "LGPLv2.1"
 LIC_FILES_CHKSUM = "file://COPYING;md5=4fbd65380cdd255951079008b364516c"
 
-DEPENDS += "qtbase qtdeclarative qtxmlpatterns"
+DEPENDS += "qtbase qtdeclarative"
 
-SRCREV = "3581a6e85561da85858e1b90bef9be88b87acc4d"
-SRC_URI = "git://git.merproject.org/mer-core/libqofono.git \
-           file://0001-also-emit-modemRemoved-and-modemAdded.patch \
-"
+SRCREV = "6916cd030b05f0bd137ea9b669fee48f20c19084"
+SRC_URI = "git://git.merproject.org/mer-core/libqofono.git"
 S = "${WORKDIR}/git"
 
-PV = "0.98+gitr${SRCPV}"
+PV = "0.92+gitr${SRCPV}"
 
 inherit qmake5
 
@@ -25,12 +23,10 @@ PACKAGES += "${PN}-tests"
 
 FILES_${PN}-tests = " \
     ${libdir}/libqofono-qt5/tests/tst_* \
-    /opt/examples/libqofono-qt5/ \
     /opt/tests/libqofono-qt5 \
 "
 FILES_${PN} += " \
     ${OE_QMAKE_PATH_QML}/MeeGo/QOfono/qmldir \
-    ${OE_QMAKE_PATH_QML}/MeeGo/QOfono/plugins.qmltypes \
     ${OE_QMAKE_PATH_QML}/MeeGo/QOfono/libQOfonoQtDeclarative.so \
 "
 FILES_${PN}-dev += " \
