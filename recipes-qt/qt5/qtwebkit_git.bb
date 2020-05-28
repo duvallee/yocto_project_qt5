@@ -9,13 +9,13 @@ LIC_FILES_CHKSUM = " \
 
 DEPENDS += "qtbase qtdeclarative icu ruby-native sqlite3 glib-2.0 libxslt gperf-native bison-native"
 
-# Patches from https://github.com/meta-qt5/qtwebkit/commits/b5.11
-# 5.11.meta-qt5.2
+# Patches from https://github.com/meta-qt5/qtwebkit/commits/b5.13
+# 5.13.meta-qt5.1
 SRC_URI += "\
     file://0001-Do-not-skip-build-for-cross-compile.patch \
     file://0002-Fix-build-with-non-glibc-libc-on-musl.patch \
-    file://0004-Fix-build-bug-for-armv32-BE.patch \
-    file://0001-PlatformQt.cmake-Do-not-generate-hardcoded-include-p.patch \
+    file://0003-Fix-build-bug-for-armv32-BE.patch \
+    file://0004-PlatformQt.cmake-Do-not-generate-hardcoded-include-p.patch \
 "
 
 inherit cmake_qt5 perlnative pythonnative
@@ -49,6 +49,10 @@ EXTRA_OECMAKE += " \
 
 EXTRA_OECMAKE_append_toolchain-clang = " -DCMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES:PATH='${STAGING_INCDIR}'"
 
+# JIT not supported on MIPS64
+EXTRA_OECMAKE_append_mips64 = " -DENABLE_JIT=OFF "
+EXTRA_OECMAKE_append_mips64el = " -DENABLE_JIT=OFF "
+
 PACKAGECONFIG ??= "qtlocation qtmultimedia qtsensors qtwebchannel \
     ${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)} \
     fontconfig \
@@ -71,4 +75,4 @@ PACKAGES_remove = "${PN}-examples"
 
 QT_MODULE_BRANCH = "dev"
 
-SRCREV = "beaeeb99881184fd368c121fcbb1a31c78b794a3"
+SRCREV = "ab1bd15209abaf7effc51dbc2f272c5681af7223"
