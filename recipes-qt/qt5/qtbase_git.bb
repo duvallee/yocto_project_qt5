@@ -9,12 +9,12 @@ LIC_FILES_CHKSUM = " \
     file://LICENSE.GPL3;md5=d32239bcb673463ab874e80d47fae504 \
     file://LICENSE.GPL3-EXCEPT;md5=763d8c535a234d9a3fb682c7ecb6c073 \
     file://LICENSE.FDL;md5=6d9f2a9af4c8b8c3c769f6cc1b6aaf7e \
-    file://LICENSE.QT-LICENSE-AGREEMENT-4.0;md5=948f8877345cd66106f11031977a4625 \
+    file://LICENSE.QT-LICENSE-AGREEMENT;md5=c8b6dd132d52c6e5a545df07a4e3e283 \
 "
 
 # common for qtbase-native, qtbase-nativesdk and qtbase
-# Patches from https://github.com/meta-qt5/qtbase/commits/b5.12-shared
-# 5.12.meta-qt5-shared.9
+# Patches from https://github.com/meta-qt5/qtbase/commits/b5.14-shared
+# 5.14.meta-qt5-shared.2
 SRC_URI += "\
     file://0001-Add-linux-oe-g-platform.patch \
     file://0002-cmake-Use-OE_QMAKE_PATH_EXTERNAL_HOST_BINS.patch \
@@ -32,7 +32,9 @@ SRC_URI += "\
     file://0014-Qt5GuiConfigExtras.cmake.in-cope-with-variable-path-.patch \
     file://0015-corelib-Include-sys-types.h-for-uint32_t.patch \
     file://0016-Define-QMAKE_CXX.COMPILER_MACROS-for-clang-on-linux.patch \
-    file://0017-Fix-Wdeprecated-copy-warnings.patch \
+    file://0017-qfloat16-check-for-__ARM_FP-2.patch \
+    file://0018-input-Make-use-of-timeval-portable-for-64bit-time_t.patch \
+    file://0022-tst_qpainter-FE_-macros-are-not-defined-for-every-pl.patch \
 "
 
 # for syncqt
@@ -50,7 +52,7 @@ PACKAGECONFIG_DISTRO ?= ""
 PACKAGECONFIG_RELEASE ?= "release"
 # This is in qt5.inc, because qtwebkit-examples are using it to enable ca-certificates dependency
 # PACKAGECONFIG_OPENSSL ?= "openssl"
-PACKAGECONFIG_DEFAULT ?= "accessibility dbus udev evdev widgets tools libs freetype tests \
+PACKAGECONFIG_DEFAULT ?= "accessibility dbus udev evdev widgets tools libs freetype tests pcre \
     ${@bb.utils.contains('SELECTED_OPTIMIZATION', '-Os', 'optimize-size ltcg', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'qt5-static', 'static', '', d)} \
 "
@@ -120,6 +122,7 @@ PACKAGECONFIG[xkb] = "-xkb,-no-xkb -no-xkbcommon,libxkbcommon"
 PACKAGECONFIG[xkbcommon] = "-xkbcommon,-no-xkbcommon,libxkbcommon,xkeyboard-config"
 PACKAGECONFIG[evdev] = "-evdev,-no-evdev"
 PACKAGECONFIG[mtdev] = "-mtdev,-no-mtdev,mtdev"
+PACKAGECONFIG[lttng] = "-trace lttng,-trace no,lttng-ust"
 # depends on glib
 PACKAGECONFIG[fontconfig] = "-fontconfig,-no-fontconfig,fontconfig"
 PACKAGECONFIG[gtk] = "-gtk,-no-gtk,gtk+3"
@@ -266,8 +269,8 @@ do_install_append() {
 
     generate_target_qt_config_file ${D}${OE_QMAKE_PATH_BINS}/qt.conf
 
-    # Fix up absolute paths in scripts
-    sed -i -e '1s,#!/usr/bin/python,#! ${USRBINPATH}/env python,' \
+    # Fix up absolute paths in scripts and use python3 instead of python
+    sed -i -e '1s,#!/usr/bin/python$,#! ${USRBINPATH}/env python3,' \
         ${D}${OE_QMAKE_PATH_QT_ARCHDATA}/mkspecs/features/uikit/devices.py
 }
 
@@ -294,4 +297,4 @@ sed -i \
     $D${OE_QMAKE_PATH_ARCHDATA}/mkspecs/qmodule.pri
 }
 
-SRCREV = "f0b93f7a4b4281c5470280eb36b7c0ef5948a921"
+SRCREV = "0ab53fbdda2fd7f24f45dcd52fbd195e282554da"

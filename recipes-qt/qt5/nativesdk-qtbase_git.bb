@@ -10,7 +10,7 @@ LIC_FILES_CHKSUM = " \
     file://LICENSE.GPL3;md5=d32239bcb673463ab874e80d47fae504 \
     file://LICENSE.GPL3-EXCEPT;md5=763d8c535a234d9a3fb682c7ecb6c073 \
     file://LICENSE.FDL;md5=6d9f2a9af4c8b8c3c769f6cc1b6aaf7e \
-    file://LICENSE.QT-LICENSE-AGREEMENT-4.0;md5=948f8877345cd66106f11031977a4625 \
+    file://LICENSE.QT-LICENSE-AGREEMENT;md5=c8b6dd132d52c6e5a545df07a4e3e283 \
 "
 
 QT_MODULE = "qtbase"
@@ -22,8 +22,8 @@ require qt5-git.inc
 FILESEXTRAPATHS =. "${FILE_DIRNAME}/qtbase:"
 
 # common for qtbase-native, qtbase-nativesdk and qtbase
-# Patches from https://github.com/meta-qt5/qtbase/commits/b5.12-shared
-# 5.12.meta-qt5-shared.9
+# Patches from https://github.com/meta-qt5/qtbase/commits/b5.14-shared
+# 5.14.meta-qt5-shared.2
 SRC_URI += "\
     file://0001-Add-linux-oe-g-platform.patch \
     file://0002-cmake-Use-OE_QMAKE_PATH_EXTERNAL_HOST_BINS.patch \
@@ -41,15 +41,16 @@ SRC_URI += "\
     file://0014-Qt5GuiConfigExtras.cmake.in-cope-with-variable-path-.patch \
     file://0015-corelib-Include-sys-types.h-for-uint32_t.patch \
     file://0016-Define-QMAKE_CXX.COMPILER_MACROS-for-clang-on-linux.patch \
-    file://0017-Fix-Wdeprecated-copy-warnings.patch \
+    file://0017-qfloat16-check-for-__ARM_FP-2.patch \
+    file://0018-input-Make-use-of-timeval-portable-for-64bit-time_t.patch \
 "
 
 # common for qtbase-native and nativesdk-qtbase
-# Patches from https://github.com/meta-qt5/qtbase/commits/b5.12-native
-# 5.12.meta-qt5-native.9
+# Patches from https://github.com/meta-qt5/qtbase/commits/b5.14-native
+# 5.14.meta-qt5-native.2
 SRC_URI += " \
-    file://0018-Always-build-uic-and-qvkgen.patch \
-    file://0019-Avoid-renameeat2-for-native-sdk-builds.patch \
+    file://0019-Always-build-uic-and-qvkgen.patch \
+    file://0020-Avoid-renameeat2-for-native-sdk-builds.patch \
 "
 
 # CMake's toolchain configuration of nativesdk-qtbase
@@ -66,6 +67,7 @@ FILES_${PN}-dev += " \
 
 FILES_${PN} += " \
     ${SDKPATHNATIVE}/environment-setup.d \
+    ${OE_QMAKE_PATH_PLUGINS} \
 "
 
 # qttools binaries are placed in a subdir of bin in order to avoid
@@ -73,6 +75,11 @@ FILES_${PN} += " \
 # package, since it doesn't detect binaries in subdirs. Explicitly
 # disable package auto-renaming for the tools-package.
 DEBIAN_NOAUTONAME_${PN} = "1"
+
+PACKAGECONFIG ?= ""
+PACKAGECONFIG[gui] = "-gui -qpa offscreen,-no-gui,"
+PACKAGECONFIG[imageformats] = "-qt-libpng -qt-libjpeg -gif -ico, -no-libpng -no-libjpeg -no-ico -no-gif,"
+PACKAGECONFIG[openssl] = "-openssl,-no-openssl,openssl,libssl"
 
 QT_CONFIG_FLAGS += " \
     -shared \
@@ -102,16 +109,11 @@ do_configure() {
         -no-gcc-sysroot \
         -system-zlib \
         -dbus-runtime \
-        -no-libjpeg \
-        -no-libpng \
-        -no-gif \
         -no-accessibility \
         -no-cups \
-        -no-gui \
         -no-sql-mysql \
         -no-sql-sqlite \
         -no-opengl \
-        -no-openssl \
         -no-xcb \
         -no-feature-bearermanagement \
         -no-icu \
@@ -149,7 +151,6 @@ do_install() {
 
     # remove things unused in nativesdk, we need the headers and libs
     rm -rf ${D}${datadir} \
-           ${D}/${OE_QMAKE_PATH_PLUGINS} \
            ${D}${libdir}/cmake \
            ${D}${libdir}/pkgconfig
 
@@ -194,4 +195,4 @@ fakeroot do_generate_qt_environment_file() {
 do_generate_qt_environment_file[umask] = "022"
 addtask generate_qt_environment_file after do_install before do_package
 
-SRCREV = "f0b93f7a4b4281c5470280eb36b7c0ef5948a921"
+SRCREV = "0ab53fbdda2fd7f24f45dcd52fbd195e282554da"

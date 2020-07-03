@@ -43,7 +43,9 @@ SECURITY_STRINGFORMAT = ""
 
 # To use system ffmpeg you need to enable also libwebp, opus, vpx
 # Only depenedencies available in oe-core are enabled by default
-PACKAGECONFIG ??= "libwebp libevent libpng"
+PACKAGECONFIG ??= "libwebp libevent libpng \
+                   ${@bb.utils.contains('DISTRO_FEATURES', 'pulseaudio', 'pulseaudio', '', d)}"
+
 PACKAGECONFIG[icu] = "-feature-webengine-system-icu,-no-feature-webengine-system-icu,icu"
 PACKAGECONFIG[ffmpeg] = "-feature-webengine-system-ffmpeg,-no-feature-webengine-system-ffmpeg,libav"
 PACKAGECONFIG[webrtc] = "-feature-webengine-webrtc,-no-feature-webengine-webrtc,libvpx"
@@ -56,13 +58,14 @@ PACKAGECONFIG[harfbuzz] = "-feature-webengine-system-harfbuzz,-no-feature-webeng
 PACKAGECONFIG[glib] = "-feature-webengine-system-glib,-no-feature-webengine-system-glib,glib-2.0"
 PACKAGECONFIG[zlib] = "-feature-webengine-system-zlib,-no-feature-webengine-system-zlib,zlib"
 PACKAGECONFIG[protobuf] = "-feature-webengine-system-protobuf,-no-feature-webengine-system-protobuf,protobuf"
-PACKAGECONFIG[jasoncpp] = "-feature-webengine-system-jsoncpp,-no-feature-webengine-system-jsoncpp,jasoncpp"
+PACKAGECONFIG[jsoncpp] = "-feature-webengine-system-jsoncpp,-no-feature-webengine-system-jsoncpp,jsoncpp"
 PACKAGECONFIG[libxml2] = "-feature-webengine-system-libxml2,-no-feature-webengine-system-libxml2,libxml2"
 PACKAGECONFIG[minizip] = "-feature-webengine-system-minizip,-no-feature-webengine-system-minizip,minizip"
 PACKAGECONFIG[proprietary-codecs] = "-feature-webengine-proprietary-codecs,-no-feature-webengine-proprietary-codecs"
 PACKAGECONFIG[pepper-plugins] = "-feature-webengine-pepper-plugins,-no-feature-webengine-pepper-plugins"
 PACKAGECONFIG[printing-and-pdf] = "-feature-webengine-printing-and-pdf,-no-feature-webengine-printing-and-pdf"
 PACKAGECONFIG[spellchecker] = "-feature-webengine-spellchecker,-no-feature-webengine-spellchecker"
+PACKAGECONFIG[pulseaudio] = "-feature-webengine-pulseaudio,-no-feature-webengine-pulseaudio,pulseaudio"
 
 EXTRA_QMAKEVARS_CONFIGURE += "${PACKAGECONFIG_CONFARGS}"
 
@@ -76,9 +79,16 @@ COMPATIBLE_MACHINE_aarch64 = "(.*)"
 
 inherit qmake5
 inherit gettext
-inherit pythonnative
 inherit perlnative
-inherit distro_features_check
+inherit features_check
+
+inherit ${@bb.utils.contains("BBFILE_COLLECTIONS", "meta-python2", "pythonnative", "", d)}
+
+python() {
+    if 'meta-python2' not in d.getVar('BBFILE_COLLECTIONS').split():
+        raise bb.parse.SkipRecipe('Requires meta-python2 to be present.')
+}
+
 
 # Static builds of QtWebEngine aren't supported.
 CONFLICT_DISTRO_FEATURES = "qt5-static"
@@ -132,52 +142,56 @@ RDEPENDS_${PN}-examples += " \
     qtdeclarative-qmlplugins \
 "
 
-QT_MODULE_BRANCH_CHROMIUM = "69-based"
+QT_MODULE_BRANCH_CHROMIUM = "77-based"
 
-# Patches from https://github.com/meta-qt5/qtwebengine/commits/b5.12
-# 5.12.meta-qt5.4
+# Patches from https://github.com/meta-qt5/qtwebengine/commits/b5.14
+# 5.14.meta-qt5.3
 SRC_URI += " \
     ${QT_GIT}/qtwebengine-chromium.git;name=chromium;branch=${QT_MODULE_BRANCH_CHROMIUM};protocol=${QT_GIT_PROTOCOL};destsuffix=git/src/3rdparty \
     file://0001-Force-host-toolchain-configuration.patch \
+    file://0002-Remove-ninja-version-test-for-now-it-fails-for-ninja.patch \
 "
 SRC_URI_append_libc-musl = "\
-    file://0002-musl-don-t-use-pvalloc-as-it-s-not-available-on-musl.patch \
-    file://0003-musl-link-against-libexecinfo.patch \
+    file://0003-musl-don-t-use-pvalloc-as-it-s-not-available-on-musl.patch \
+    file://0004-musl-link-against-libexecinfo.patch \
+    file://0005-mkspecs-Allow-builds-with-libc-glibc.patch \
 "
 
-# Patches from https://github.com/meta-qt5/qtwebengine-chromium/commits/69-based
-# 69-based.meta-qt5.4
+# Patches from https://github.com/meta-qt5/qtwebengine-chromium/commits/77-based
+# 77-based.meta-qt5.2
 SRC_URI += " \
-    file://chromium/0001-chromium-Force-host-toolchain-configuration.patch;patchdir=src/3rdparty \
-    file://chromium/0002-chromium-workaround-for-too-long-.rps-file-name.patch;patchdir=src/3rdparty \
-    file://chromium/0003-chromium-Fix-build-with-gcc8.patch;patchdir=src/3rdparty \
-    file://chromium/0004-chromium-stack-pointer-clobber.patch;patchdir=src/3rdparty \
-    file://chromium/0019-chromium-fix-build-with-clang.patch;patchdir=src/3rdparty \
-    file://chromium/0020-chromium-Check-for-__ARM_FP-2-before-using-__fp16.patch;patchdir=src/3rdparty \
-    file://chromium/0021-chromium-Exclude-CRC32-for-32bit-arm.patch;patchdir=src/3rdparty \
-    file://chromium/0022-chromium-Do-not-try-to-set-the-guessed-values-for-ma.patch;patchdir=src/3rdparty \
+    file://chromium/0001-chromium-workaround-for-too-long-.rps-file-name.patch;patchdir=src/3rdparty \
+    file://chromium/0002-chromium-stack-pointer-clobber.patch;patchdir=src/3rdparty \
+    file://chromium/0003-chromium-fix-build-with-clang.patch;patchdir=src/3rdparty \
+    file://chromium/0004-chromium-Exclude-CRC32-for-32bit-arm.patch;patchdir=src/3rdparty \
+    file://chromium/0005-chromium-Do-not-try-to-set-the-guessed-values-for-ma.patch;patchdir=src/3rdparty \
+    file://chromium/0006-chromium-aarch64-skia-build-fix.patch;patchdir=src/3rdparty \
     file://chromium/0007-chromium-fix-build-after-y2038-changes-in-glibc.patch;patchdir=src/3rdparty \
+    file://chromium/0008-chromium-Fix-build-on-32bit-arches-with-64bit-time_t.patch;patchdir=src/3rdparty \
+    file://chromium/0009-chromium-Include-cstddef-for-size_t-definition.patch;patchdir=src/3rdparty \
+    file://chromium/0010-chromium-Move-CharAllocator-definition-to-a-header-f.patch;patchdir=src/3rdparty \
+    file://chromium/0011-chromium-Include-cstddef-and-cstdint.patch;patchdir=src/3rdparty \
+    file://chromium/0012-chromium-Link-v8-with-libatomic-on-x86.patch;patchdir=src/3rdparty \
 "
 
 SRC_URI_append_libc-musl = "\
-    file://chromium/0005-chromium-musl-sandbox-Define-TEMP_FAILURE_RETRY-if-n.patch;patchdir=src/3rdparty \
-    file://chromium/0006-chromium-musl-Avoid-mallinfo-APIs-on-non-glibc-linux.patch;patchdir=src/3rdparty \
-    file://chromium/0007-chromium-musl-include-fcntl.h-for-loff_t.patch;patchdir=src/3rdparty \
-    file://chromium/0008-chromium-musl-use-off64_t-instead-of-the-internal-__.patch;patchdir=src/3rdparty \
-    file://chromium/0009-chromium-musl-linux-glibc-make-the-distinction.patch;patchdir=src/3rdparty \
-    file://chromium/0010-chromium-musl-allocator-Do-not-include-glibc_weak_sy.patch;patchdir=src/3rdparty \
-    file://chromium/0011-chromium-musl-Use-correct-member-name-__si_fields-fr.patch;patchdir=src/3rdparty \
-    file://chromium/0012-chromium-musl-Define-res_ninit-and-res_nclose-for-no.patch;patchdir=src/3rdparty \
-    file://chromium/0013-chromium-musl-Do-not-define-__sbrk-on-musl.patch;patchdir=src/3rdparty \
-    file://chromium/0014-chromium-musl-Adjust-default-pthread-stack-size.patch;patchdir=src/3rdparty \
-    file://chromium/0015-chromium-musl-include-asm-generic-ioctl.h-for-TCGETS.patch;patchdir=src/3rdparty \
-    file://chromium/0016-chromium-musl-Use-_fpstate-instead-of-_libc_fpstate-.patch;patchdir=src/3rdparty \
-    file://chromium/0017-chromium-musl-elf_reader.cc-include-sys-reg.h-to-get.patch;patchdir=src/3rdparty \
-    file://chromium/0018-chromium-musl-pread-pwrite.patch;patchdir=src/3rdparty \
+    file://chromium/0011-chromium-musl-sandbox-Define-TEMP_FAILURE_RETRY-if-n.patch;patchdir=src/3rdparty \
+    file://chromium/0012-chromium-musl-Avoid-mallinfo-APIs-on-non-glibc-linux.patch;patchdir=src/3rdparty \
+    file://chromium/0013-chromium-musl-include-fcntl.h-for-loff_t.patch;patchdir=src/3rdparty \
+    file://chromium/0014-chromium-musl-use-off64_t-instead-of-the-internal-__.patch;patchdir=src/3rdparty \
+    file://chromium/0015-chromium-musl-linux-glibc-make-the-distinction.patch;patchdir=src/3rdparty \
+    file://chromium/0016-chromium-musl-allocator-Do-not-include-glibc_weak_sy.patch;patchdir=src/3rdparty \
+    file://chromium/0017-chromium-musl-Use-correct-member-name-__si_fields-fr.patch;patchdir=src/3rdparty \
+    file://chromium/0018-chromium-musl-Define-res_ninit-and-res_nclose-for-no.patch;patchdir=src/3rdparty \
+    file://chromium/0019-chromium-musl-Do-not-define-__sbrk-on-musl.patch;patchdir=src/3rdparty \
+    file://chromium/0020-chromium-musl-Adjust-default-pthread-stack-size.patch;patchdir=src/3rdparty \
+    file://chromium/0021-chromium-musl-Use-_fpstate-instead-of-_libc_fpstate-.patch;patchdir=src/3rdparty \
+    file://chromium/0022-chromium-musl-elf_reader.cc-include-sys-reg.h-to-get.patch;patchdir=src/3rdparty \
+    file://chromium/0023-chromium-musl-pread-pwrite.patch;patchdir=src/3rdparty \
 "
 
-SRCREV_qtwebengine = "636b32c7f22c96e9562270219cedca52d5203737"
-SRCREV_chromium = "89644ad92fee38706430c1adb1e29b9756193b4f"
+SRCREV_qtwebengine = "73d457481caff493066d9cce50087b56ee506f6a"
+SRCREV_chromium = "a9a20127e8adeb3f3cd7921b0bec32083103cc5c"
 SRCREV = "${SRCREV_qtwebengine}"
 
 SRCREV_FORMAT = "qtwebengine_chromium"

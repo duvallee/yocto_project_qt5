@@ -11,8 +11,8 @@ LIC_FILES_CHKSUM = " \
 DEPENDS += "qtbase"
 DEPENDS_class-target += "qtdeclarative qt3d-native"
 
-# Patches from https://github.com/meta-qt5/qt3d/commits/b5.12
-# 5.12.meta-qt5.2
+# Patches from https://github.com/meta-qt5/qt3d/commits/b5.14
+# 5.14.meta-qt5.1
 SRC_URI += " \
     file://0001-Allow-a-tools-only-build.patch \
 "
@@ -36,6 +36,6 @@ do_configure_prepend() {
          ${S}/src/quick3d/imports/input/importsinput.pro
 }
 
-SRCREV = "b77712dd95adb6644e9af3bf98a2a6ebc5a52ec4"
+SRCREV = "5aedae5aa9251e1216d7bc1652cb1f451dd047c1"
 
 BBCLASSEXTEND += "native nativesdk"
